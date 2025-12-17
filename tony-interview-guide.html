@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tony Interview Guide</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        /* Password Gate Styles */
+        #password-gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .password-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .warning-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .warning-title {
+            color: #ff9800;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .warning-text {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        .password-label {
+            color: #4fc3f7;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .password-input {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 1.1rem;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #e0e0e0;
+            text-align: center;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        .password-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+        .password-hint {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        .password-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: #4fc3f7;
+            color: #1a1a2e;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .password-btn:hover {
+            background: #81d4fa;
+            transform: translateY(-2px);
+        }
+        .password-error {
+            color: #ef5350;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            display: none;
+        }
+        #main-content {
+            display: none;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 20px 0; border-bottom: 1px solid #333; margin-bottom: 20px; }
+        .header h1 { color: #4fc3f7; font-size: 1.8rem; }
+        .header .timer { font-size: 1.2rem; color: #81c784; margin-top: 10px; }
+
+        .progress-bar {
+            background: #333;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #4fc3f7, #81c784);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4fc3f7;
+        }
+        .section.active { border-left-color: #81c784; background: rgba(129,199,132,0.1); }
+        .section.completed { border-left-color: #666; opacity: 0.6; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .section-title { font-size: 1.2rem; color: #4fc3f7; }
+        .section-badge {
+            background: #333;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .question {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .question-text { font-size: 1rem; margin-bottom: 10px; }
+        .question-tip { font-size: 0.85rem; color: #aaa; font-style: italic; }
+
+        .score-buttons { display: flex; gap: 8px; margin-top: 10px; }
+        .score-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .score-btn.red { background: #c62828; color: white; }
+        .score-btn.yellow { background: #f9a825; color: #333; }
+        .score-btn.green { background: #2e7d32; color: white; }
+        .score-btn:hover { transform: scale(1.05); }
+        .score-btn.selected { box-shadow: 0 0 0 3px white; }
+
+        .notes-input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            resize: vertical;
+        }
+        .notes-input:focus { outline: none; border-color: #4fc3f7; }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        .nav-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .nav-btn.primary { background: #4fc3f7; color: #1a1a2e; }
+        .nav-btn.secondary { background: #333; color: #e0e0e0; }
+        .nav-btn:hover { transform: translateY(-2px); }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .summary { background: rgba(79,195,247,0.1); padding: 20px; border-radius: 12px; }
+        .summary h2 { color: #4fc3f7; margin-bottom: 15px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .summary-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; text-align: center; }
+        .summary-card .label { font-size: 0.85rem; color: #aaa; }
+        .summary-card .value { font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
+        .summary-card .value.good { color: #81c784; }
+        .summary-card .value.warning { color: #f9a825; }
+        .summary-card .value.concern { color: #ef5350; }
+
+        .reminder-box {
+            background: rgba(255,193,7,0.15);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .reminder-box h4 { color: #ffc107; margin-bottom: 8px; }
+
+        .comm-tips {
+            background: rgba(129,199,132,0.1);
+            border-left: 3px solid #81c784;
+            padding: 12px 15px;
+            margin-top: 12px;
+            border-radius: 0 6px 6px 0;
+        }
+        .comm-tips-header {
+            color: #81c784;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .comm-tip-item {
+            font-size: 0.85rem;
+            color: #c8e6c9;
+            padding: 4px 0;
+            padding-left: 15px;
+            position: relative;
+        }
+        .comm-tip-item:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #81c784;
+        }
+
+        .general-tips {
+            background: rgba(179,136,255,0.1);
+            border: 1px solid #b388ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .general-tips h4 { color: #b388ff; margin-bottom: 10px; }
+        .general-tips ul { margin-left: 20px; font-size: 0.85rem; }
+        .general-tips li { margin-bottom: 5px; color: #e1bee7; }
+
+        .key-insights { margin-top: 20px; }
+        .key-insights h3 { color: #81c784; margin-bottom: 10px; }
+        .insight-item { padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <!-- Password Gate -->
+    <div id="password-gate">
+        <div class="password-container">
+            <div class="warning-icon">&#9888;</div>
+            <div class="warning-title">Sensitive Content</div>
+            <div class="warning-text">
+                This document contains confidential interview preparation materials
+                and personal assessment information. Unauthorised access is prohibited.
+            </div>
+            <div class="password-label">Enter Password to Continue</div>
+            <input type="password" id="password-input" class="password-input" placeholder="******" maxlength="6" autofocus>
+            <div class="password-hint">Hint: 52 × 3 × 1</div>
+            <button class="password-btn" onclick="checkPassword()">Unlock</button>
+            <div id="password-error" class="password-error">Incorrect password. Please try again.</div>
+        </div>
+    </div>
+
+    <!-- Main Content (hidden until password entered) -->
+    <div id="main-content">
+        <div id="root"></div>
+    </div>
+
+    <script>
+        function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            const error = document.getElementById('password-error');
+            if (input === '525361') {
+                document.getElementById('password-gate').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            } else {
+                error.style.display = 'block';
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
+            }
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('password-gate').style.display !== 'none') {
+                checkPassword();
+            }
+        });
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const sections = [
+            {
+                id: 'his_plans',
+                title: "Tony's Plans",
+                badge: 'His Agenda',
+                questions: [
+                    {
+                        text: "So - what are your plans over the next 12-24 months? What are you thinking?",
+                        tip: "You asked this in the invite. Let him lead. Silence is OK - count to 10.",
+                        communication: [
+                            "Wait 5-10 seconds after asking. Introverts process internally before speaking.",
+                            "Don't rephrase or add to your question if he's quiet - he heard you, he's thinking.",
+                            "Avoid intense eye contact. Look at the table, your coffee, the window - it reduces pressure.",
+                            "If he gives a short answer, say 'tell me more' rather than asking a new question."
+                        ]
+                    },
+                    {
+                        text: "[If vague] Are you thinking about staying in grid connections long-term, or exploring other areas?",
+                        tip: "Only ask if he's unclear. Don't push if he's not ready to share.",
+                        communication: [
+                            "Giving options (A or B) is easier to answer than open-ended questions.",
+                            "Accept 'I don't know' as a valid answer - don't push. Say 'that's fine, no pressure'.",
+                            "Autistic people often mean exactly what they say. Don't read between lines that aren't there.",
+                            "If he seems uncomfortable, say 'we can come back to this' and move on."
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'support',
+                title: 'How We Can Support',
+                badge: 'Your Offer',
+                questions: [
+                    {
+                        text: "What would help you get where you want to be? More of certain project types, training, different responsibilities?",
+                        tip: "This is the support you promised. Listen for specifics.",
+                        communication: [
+                            "Offering concrete examples (project types, training) helps - abstract questions are hard.",
+                            "Write down what he says. Visibly taking notes shows you're taking him seriously.",
+                            "Don't interrupt or finish his sentences, even if there are long pauses.",
+                            "Autistic people value follow-through. If you commit to something, DO IT. Broken promises erode trust fast.",
+                            "He may not ask for things he needs. Try: 'Some people find X helpful - would that interest you?'"
+                        ]
+                    },
+                    {
+                        text: "Is there anything getting in the way right now that I could help with?",
+                        tip: "Blockers, frustrations, tools, workload - keep it open.",
+                        communication: [
+                            "He might mention small things that seem minor to you but are huge to him. Don't dismiss them.",
+                            "Sensory stuff matters: noisy office? Bad lighting? Interruptions? These are real blockers.",
+                            "If he criticises a process, don't defend it. Just listen and say 'that's useful to know'.",
+                            "Autistic people often won't complain until they're at breaking point. Take any complaint seriously.",
+                            "Ask about communication preferences: 'Do you prefer email, chat, or face-to-face for different things?'"
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'check_in',
+                title: 'Quick Check',
+                badge: 'Optional',
+                questions: [
+                    {
+                        text: "On a scale of 1-10, how are you finding things at the moment?",
+                        tip: "Easy question for introverts. If low, ask 'what would move it up?'",
+                        communication: [
+                            "Numbers are easier than feelings. '6 out of 10' is more comfortable than 'how do you feel?'",
+                            "Don't react dramatically to low numbers. Stay calm: 'OK, what would help move that up?'",
+                            "He's probably underselling satisfaction (introverts do this). A 7 might mean 'pretty good'.",
+                            "If he says a number and stops, wait. Then ask 'what's behind that number?' if needed."
+                        ]
+                    },
+                    {
+                        text: "Anything else on your mind?",
+                        tip: "Open door. Sometimes the real thing comes out at the end.",
+                        communication: [
+                            "This is where the real thing often emerges. Give it time.",
+                            "If he says 'no', accept it. Say 'OK, thanks for your time - I appreciate it.'",
+                            "End with something concrete: 'I'll follow up on X by Friday' - then actually do it.",
+                            "Don't end with forced positivity or a big pep talk. A simple 'thanks Tony' is enough.",
+                            "After the meeting, send a short email summarising what you discussed and any commitments you made."
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        const generalTips = [
+            "Be genuine. Autistic people often detect insincerity quickly - skip the corporate pleasantries.",
+            "Say what you mean. 'I want to keep you' is better than hints and implications.",
+            "Predictability builds trust. Stick to what you said the meeting was about.",
+            "Small talk is often uncomfortable. It's OK to get straight to the point.",
+            "Respect his expertise. He likely knows his job better than you know it.",
+            "Don't touch him or invade his space. Keep physical distance comfortable.",
+            "Fluorescent lights, loud AC, interruptions - the environment matters more than you think.",
+            "If you make a commitment, put it in writing afterward. This shows respect and builds trust."
+        ];
+
+        function App() {
+            const [currentSection, setCurrentSection] = useState(0);
+            const [scores, setScores] = useState({});
+            const [notes, setNotes] = useState({});
+            const [showSummary, setShowSummary] = useState(false);
+            const [startTime] = useState(Date.now());
+            const [elapsed, setElapsed] = useState(0);
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setElapsed(Math.floor((Date.now() - startTime) / 1000));
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [startTime]);
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            };
+
+            const getQuestionKey = (sectionId, qIndex) => `${sectionId}-${qIndex}`;
+
+            const setScore = (sectionId, qIndex, score) => {
+                setScores(prev => ({ ...prev, [getQuestionKey(sectionId, qIndex)]: score }));
+            };
+
+            const setNote = (sectionId, qIndex, note) => {
+                setNotes(prev => ({ ...prev, [getQuestionKey(sectionId, qIndex)]: note }));
+            };
+
+            const progress = ((currentSection + 1) / sections.length) * 100;
+
+            const calculateOverallScore = () => {
+                const scoreValues = Object.values(scores);
+                if (scoreValues.length === 0) return 0;
+                const scoreMap = { concern: 1, neutral: 2, positive: 3 };
+                const total = scoreValues.reduce((sum, s) => sum + scoreMap[s], 0);
+                return ((total / (scoreValues.length * 3)) * 100).toFixed(0);
+            };
+
+            const countByType = (type) => Object.values(scores).filter(s => s === type).length;
+
+            if (showSummary) {
+                const overall = calculateOverallScore();
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>Interview Summary - Tony</h1>
+                            <div className="timer">Duration: {formatTime(elapsed)}</div>
+                        </div>
+
+                        <div className="summary">
+                            <h2>Overall Assessment</h2>
+                            <div className="summary-grid">
+                                <div className="summary-card">
+                                    <div className="label">Positive Signals</div>
+                                    <div className="value good">{countByType('positive')}</div>
+                                </div>
+                                <div className="summary-card">
+                                    <div className="label">Neutral</div>
+                                    <div className="value warning">{countByType('neutral')}</div>
+                                </div>
+                                <div className="summary-card">
+                                    <div className="label">Concerns</div>
+                                    <div className="value concern">{countByType('concern')}</div>
+                                </div>
+                            </div>
+
+                            <div className="summary-card" style={{marginBottom: '20px'}}>
+                                <div className="label">Retention Confidence</div>
+                                <div className={`value ${overall >= 70 ? 'good' : overall >= 50 ? 'warning' : 'concern'}`}>
+                                    {overall}%
+                                </div>
+                            </div>
+
+                            <div className="key-insights">
+                                <h3>Your Notes</h3>
+                                {Object.entries(notes).filter(([k,v]) => v).map(([key, note]) => (
+                                    <div key={key} className="insight-item">
+                                        <strong>{key}:</strong> {note}
+                                    </div>
+                                ))}
+                                {Object.values(notes).filter(n => n).length === 0 && (
+                                    <div className="insight-item">No notes recorded</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="nav-buttons">
+                            <button className="nav-btn secondary" onClick={() => setShowSummary(false)}>
+                                Back to Questions
+                            </button>
+                            <button className="nav-btn primary" onClick={() => window.print()}>
+                                Print Summary
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = sections[currentSection];
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>Tony Retention Check-in</h1>
+                        <div className="timer">Elapsed: {formatTime(elapsed)}</div>
+                    </div>
+
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{width: `${progress}%`}}></div>
+                    </div>
+
+                    <div className="reminder-box">
+                        <h4>Before You Start</h4>
+                        <ul style={{marginLeft: '20px', fontSize: '0.9rem'}}>
+                            <li><strong>Silence is golden</strong> - count to 10 after each question</li>
+                            <li><strong>Don't fill pauses</strong> - he's processing, not stuck</li>
+                            <li><strong>Listen 80%, talk 20%</strong></li>
+                        </ul>
+                    </div>
+
+                    <div className="general-tips">
+                        <h4>Connecting with Introverted Autistic People</h4>
+                        <ul>
+                            {generalTips.map((tip, i) => <li key={i}>{tip}</li>)}
+                        </ul>
+                    </div>
+
+                    <div className={`section active`}>
+                        <div className="section-header">
+                            <span className="section-title">{section.title}</span>
+                            <span className="section-badge">{section.badge}</span>
+                        </div>
+
+                        {section.questions.map((q, qIndex) => {
+                            const key = getQuestionKey(section.id, qIndex);
+                            return (
+                                <div key={qIndex} className="question">
+                                    <div className="question-text">"{q.text}"</div>
+                                    <div className="question-tip">{q.tip}</div>
+
+                                    {q.communication && (
+                                        <div className="comm-tips">
+                                            <div className="comm-tips-header">How to Connect</div>
+                                            {q.communication.map((tip, i) => (
+                                                <div key={i} className="comm-tip-item">{tip}</div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="score-buttons">
+                                        <button
+                                            className={`score-btn red ${scores[key] === 'concern' ? 'selected' : ''}`}
+                                            onClick={() => setScore(section.id, qIndex, 'concern')}
+                                        >
+                                            Concern
+                                        </button>
+                                        <button
+                                            className={`score-btn yellow ${scores[key] === 'neutral' ? 'selected' : ''}`}
+                                            onClick={() => setScore(section.id, qIndex, 'neutral')}
+                                        >
+                                            Neutral
+                                        </button>
+                                        <button
+                                            className={`score-btn green ${scores[key] === 'positive' ? 'selected' : ''}`}
+                                            onClick={() => setScore(section.id, qIndex, 'positive')}
+                                        >
+                                            Positive
+                                        </button>
+                                    </div>
+
+                                    <textarea
+                                        className="notes-input"
+                                        placeholder="Quick notes on his response..."
+                                        rows="2"
+                                        value={notes[key] || ''}
+                                        onChange={(e) => setNote(section.id, qIndex, e.target.value)}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="nav-buttons">
+                        <button
+                            className="nav-btn secondary"
+                            onClick={() => setCurrentSection(prev => prev - 1)}
+                            disabled={currentSection === 0}
+                        >
+                            Previous
+                        </button>
+
+                        {currentSection === sections.length - 1 ? (
+                            <button className="nav-btn primary" onClick={() => setShowSummary(true)}>
+                                View Summary
+                            </button>
+                        ) : (
+                            <button
+                                className="nav-btn primary"
+                                onClick={() => setCurrentSection(prev => prev + 1)}
+                            >
+                                Next Section
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

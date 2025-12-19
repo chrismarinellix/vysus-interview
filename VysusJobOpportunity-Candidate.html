@@ -207,17 +207,32 @@ body.loading::before {
 
 /* Screens - Simplified for maximum compatibility */
 .screen {
-  display: none !important;
+  display: none;
   opacity: 0;
   min-height: auto;
   visibility: hidden;
 }
 
 .screen.active {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
+  opacity: 1;
+  visibility: visible;
   animation: fadeInScreen 0.8s ease forwards;
+}
+
+/* Flex screens for centered content */
+#accessScreen.active,
+#landingScreen.active,
+#expiredScreen.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Block screens for scrollable content */
+#promoScreen.active,
+#quizScreen.active,
+#resultsScreen.active {
+  display: block;
 }
 
 .screen.fadeOut {
@@ -229,9 +244,7 @@ body.loading::before {
   min-height: 100vh !important;
 }
 
-#landingScreen.active {
-  display: flex !important;
-}
+/* landingScreen centering handled above */
 
 /* Other screens should fit content, not force full height */
 #promoScreen,
@@ -1618,7 +1631,7 @@ body.loading::before {
   </noscript>
 
   <!-- Access Gate Screen - Email Verification -->
-  <div id="accessScreen" class="screen active" style="display: flex; opacity: 1; visibility: visible; min-height: 100vh; background-color: #003d3d;">
+  <div id="accessScreen" class="screen active" style="display: flex; align-items: center; justify-content: center; opacity: 1; visibility: visible; min-height: 100vh; background-color: #003d3d;">
     <div class="energy-background"></div>
     <div class="energy-particles">
       <div class="particle"></div>
@@ -1656,7 +1669,7 @@ body.loading::before {
   </div>
 
   <!-- Session Expired Screen -->
-  <div id="expiredScreen" class="screen" style="display: none; background-color: #003d3d;">
+  <div id="expiredScreen" class="screen" style="display: none; min-height: 100vh; background-color: #003d3d;">
     <div class="energy-background"></div>
     <div class="landing-content">
       <div class="landing-logo">⏰</div>
@@ -2393,6 +2406,8 @@ body.loading::before {
 
           const landingScreen = document.getElementById('landingScreen');
           landingScreen.style.display = 'flex';
+          landingScreen.style.alignItems = 'center';
+          landingScreen.style.justifyContent = 'center';
           landingScreen.style.opacity = '1';
           landingScreen.style.visibility = 'visible';
           landingScreen.classList.add('active');
@@ -2502,9 +2517,11 @@ body.loading::before {
       // Hide global timer
       document.getElementById('globalTimer').style.display = 'none';
 
-      // Show expired screen
+      // Show expired screen with centering
       const expiredScreen = document.getElementById('expiredScreen');
       expiredScreen.style.display = 'flex';
+      expiredScreen.style.alignItems = 'center';
+      expiredScreen.style.justifyContent = 'center';
       expiredScreen.style.opacity = '1';
       expiredScreen.style.visibility = 'visible';
       expiredScreen.classList.add('active');
@@ -2530,6 +2547,10 @@ body.loading::before {
         return;
       }
 
+      // Determine correct display type for each screen
+      const flexScreens = ['accessScreen', 'landingScreen', 'expiredScreen'];
+      const displayType = flexScreens.includes(toScreenId) ? 'flex' : 'block';
+
       // Fade out current screen
       fromScreen.classList.add('fadeOut');
 
@@ -2540,11 +2561,17 @@ body.loading::before {
         fromScreen.style.opacity = '0';
         fromScreen.style.visibility = 'hidden';
 
-        // Show new screen - use multiple methods to ensure visibility
-        toScreen.style.display = 'block';
+        // Show new screen with correct display type
+        toScreen.style.display = displayType;
         toScreen.style.opacity = '1';
         toScreen.style.visibility = 'visible';
         toScreen.classList.add('active');
+
+        // For flex screens, ensure centering
+        if (displayType === 'flex') {
+          toScreen.style.alignItems = 'center';
+          toScreen.style.justifyContent = 'center';
+        }
 
         // Scroll to top IMMEDIATELY - multiple methods
         window.scrollTo(0, 0);
